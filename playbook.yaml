@@ -1,0 +1,155 @@
+---
+- hosts: discovery_service
+  sudo: yes
+  gather_facts: no  
+ 
+
+  tasks:
+
+  - name: install wget
+    yum: name=wget state=installed update_cache=yes
+  
+  - name: install unzip
+    yum: name=wget state=installed update_cache=yes
+  
+  - name: Download dependencis
+    get_url:
+    url: https://releases.hashicorp.com/consul/1.0.0/consul_1.0.0_linux_amd64.zip
+    dest: /etc
+    mode: 0440
+   
+  - name: Extract dependencis
+    unarchive:
+    src: /tmp/consul_1.0.0_linux_amd64.zip
+    dest: /tmp
+
+  - name: Move consul to bin
+    command: mv /tmp/consul /usr/bin
+ 
+  - name: Creates directory consul
+    file:
+    path: /etc/consul
+    state: directory
+  
+  - name: Creates directory consul.d
+    file:
+    path: /etc/consul.d
+    state: directory
+
+
+  - user:
+    name: consul
+    password: consul
+  
+  - name: permit consul
+    command: chown -R consul:consul /etc/consul
+ 
+  - name: permit consul.d
+    command: chown -R consul:consul /etc/consul.d
+
+  - name: Create file
+    shell: "consul agent -server -bootstrap-expect=1 \
+    -data-dir=/etc/consul/data -node=agent-server -bind=192.168.56.102 \
+    -enable-script-checks=true -config-dir=/etc/consul.d -client 0.0.0.0"
+    become_user: consul
+    become: yes
+ 
+  - name: consul members
+    command: consul members
+
+
+
+  - hosts: microservice_a
+    sudo: yes
+    gather_facts: no
+
+  tasks:
+
+  - name: install wget
+    yum: name=wget state=installed update_cache=yes
+
+  - name: install unzip
+    yum: name=wget state=installed update_cache=yes
+
+
+  - name: Download pip
+    get_url:
+    url: https://bootstrap.pypa.io/get-pip.py
+    dest: /tmp
+    mode: 0440
+
+  - name: python run
+    command: python /tmp/get-pip.py
+
+  - name: Download linux
+    get_url:
+    url: https://releases.hashicorp.com/consul/1.0.0/consul_1.0.0_linux_amd64.zip
+    dest: /tmp
+    mode: 0440
+
+
+  - name: Extract dependencis2
+    unarchive:
+    src: /tmp/consul_1.0.0_linux_amd64.zip
+    dest: /tmp
+
+
+
+  - name: Move consul to bin2
+    command: mv /tmp/consul /usr/bin
+
+  - name: Creates directory consul.d2
+    file:
+    path: /etc/consul.d
+    state: directory
+
+  - name: Creates directory consul2
+    file:
+    path: /etc/consul
+    state: directory
+
+
+
+  - name: Creates directory data
+    file:
+    path: /etc/consul/data
+    state: directory
+  
+  - user:
+    name: consul
+    password: consul
+
+  - name: permit consul2
+    command: chown -R consul:consul /etc/consul
+
+  - name: permit consul.d2
+    command: chown -R consul:consul /etc/consul.d
+ 
+  - name: install flask
+    pip: name=flask state=installed update_cache=yes
+
+
+  - name: Download .py
+    get_url:
+    url: https://raw.githubusercontent.com/ICESI/ds-discovery-service/master/sources/microservice_a.py
+    mode: 0440
+    
+  - name: run .py
+    command: python microservice_a.py
+
+
+  - name: Create file
+    shell: echo '{"service": {"name": "microservice-a", "tags": ["flask"], "port": 8080,
+  "check": {"script": "curl localhost:8080/health >/dev/null 2>&1", "interval": "10s"}}}' >/etc/consul.d/microservice-a.json
+    become_user: consul
+    become: yes
+
+
+  - name: Create file
+    shell: consul agent -data-dir=/etc/consul/data -node=agent-one \
+    -bind=192.168.56.103 -enable-script-checks=true -config-dir=/etc/consul.d
+    become_user: consul
+    become: yes
+
+  - name: join
+    command: consul join 192.168.56.102
