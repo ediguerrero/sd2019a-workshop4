@@ -138,18 +138,17 @@
     command: python microservice_a.py
 
 
-  - name: Create file
-    shell: echo '{"service": {"name": "microservice-a", "tags": ["flask"], "port": 8080,
-  "check": {"script": "curl localhost:8080/health >/dev/null 2>&1", "interval": "10s"}}}' >/etc/consul.d/microservice-a.json
+  - name: Create file1
+    shell: echo | "{"service": {"name": "microservice-a", "tags": ["flask"], "port": 8080,"check": {"script": "curl localhost:8080/health >/dev/null 2>&1", "interval": "10s"}}}" >> /etc/consul.d/microservice-a.json
     become_user: consul
     become: yes
 
 
-  - name: Create file
-    shell: consul agent -data-dir=/etc/consul/data -node=agent-one \
+  - name: Create file2
+    command: consul agent -data-dir=/etc/consul/data -node=agent-one \
     -bind=192.168.56.103 -enable-script-checks=true -config-dir=/etc/consul.d
     become_user: consul
     become: yes
 
   - name: join
-command: consul join 192.168.56.102
+    command: consul join 192.168.56.102
