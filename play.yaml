@@ -152,4 +152,4 @@
     become: yes
 
   - name: join
-    command: consul join 192.168.56.102
+command: consul join 192.168.56.102
