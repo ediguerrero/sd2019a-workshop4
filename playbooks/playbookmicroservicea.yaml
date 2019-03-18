@@ -1,75 +1,9 @@
----
-- hosts: discovery_service
-  sudo: yes
-  gather_facts: no  
- 
-
-  tasks:
-
-  - name: install wget
-    yum: name=wget state=installed update_cache=yes
-  
-  - name: install unzip
-    yum: name=unzip state=installed update_cache=yes
-  
-    #- name: Download dependencis
-    #get_url:
-    # url: https://releases.hashicorp.com/consul/1.0.0/consul_1.0.0_linux_amd64.zip
-    # dest: /etc
-    # mode: 0440
-   
-  - name: Extract dependencis
-    unarchive:
-      src: https://releases.hashicorp.com/consul/1.0.0/consul_1.0.0_linux_amd64.zip
-      remote_src: yes
-            #src: /tmp/consul_1.0.0_linux_amd64.zip
-      dest: /tmp
-
-
-  - name: Move consul to bin
-    command: "mv /tmp/consul /usr/bin"
- 
-  - name: Creates directory consul
-    file:
-      path: /etc/consul
-      state: directory
-  
-  - name: Creates directory consul.d
-    file:
-      path: /etc/consul.d
-      state: directory
-
-
-  - name: Add the user consul
-    user:
-      name: consul
-      password: consul
-  
-  - name: permit consul
-    command: chown -R consul:consul /etc/consul
- 
-  - name: permit consul.d
-    command: chown -R consul:consul /etc/consul.d
-
-  - name: Create file
-    shell: "consul agent -server -bootstrap-expect=1 \
-    -data-dir=/etc/consul/data -node=agent-server -bind=192.168.56.102 \
-    -enable-script-checks=true -config-dir=/etc/consul.d -client 0.0.0.0"
-    become_user: consul
-    become: yes
- 
-  - name: consul members
-    command: "consul members"
-
-    #- name: consul members
-    #command: "consul members"
-
-
-
-
-  - hosts: microservice_a
-    sudo: yes
-    gather_facts: no
+---  
+- hosts: microservice_a
+  become: yes
+  become_user: root
+  become_method: sudo
+  gather_facts: no
 
   tasks:
 

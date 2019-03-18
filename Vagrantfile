@@ -48,6 +48,10 @@ end
      # mkdir /etc/consul.d
      # mkdir -p /etc/consul/data
     #SHELL
+    ds.vm.provision "ansible" do |ansible|
+    ansible.playbook = "playbooks/playbookdiscovery.yaml"
+    end
+
   end
   config.vm.define :microservice_a do |ma|
     ma.vm.box = "centos_7"
@@ -69,6 +73,12 @@ end
      # mkdir /etc/consul.d
      # mkdir -p /etc/consul/data
     #SHELL
+    ma.vm.provision "ansible" do |ansible|
+    ansible.playbook = "playbooks/playbookmicroservicea.yaml"
+    end
+    
+    
+    
   end
   config.vm.define :microservice_b do |mb|
     mb.vm.box = "centos_7"
@@ -89,11 +99,14 @@ end
      # mkdir /etc/consul.d
      # mkdir -p /etc/consul/data
     #SHELL
+
+    mb.vm.provision "ansible" do |ansible|
+    ansible.playbook = "playbooks/playbookmicroserviceb.yaml"
+    end
+
   end
 
-config.vm.provision "ansible" do |ansible|
-    ansible.playbook = "playbook.yaml"
-end
+
 
 
 end
